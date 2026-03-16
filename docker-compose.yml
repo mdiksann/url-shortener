@@ -1,0 +1,80 @@
+# ── Services ──────────────────────────────────────────────────────────────────
+services:
+
+  # ── Node.js application ──────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url-shortener-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      BASE_URL: http://localhost:3000
+
+      # Uses Docker's internal DNS — 'postgres' and 'redis' resolve to the
+      # respective service containers defined below
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/urlshortener
+      REDIS_URL: redis://redis:6379
+
+      SHORT_CODE_LENGTH: 8
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX: 10
+      CACHE_TTL: 86400
+    depends_on:
+      postgres:
+        condition: service_healthy   # Wait until Postgres is ready to accept connections
+      redis:
+        condition: service_healthy   # Wait until Redis responds to PING
+    restart: unless-stopped
+    # Mount source code for live-reload in development (remove in production)
+    volumes:
+      - ./src:/app/src
+      - ./migrations:/app/migrations
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: url-shortener-postgres
+    environment:
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      # Persist data across container restarts
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"   # Host port 5433 avoids conflict with a local Postgres on 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d urlshortener"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: url-shortener-redis
+    # appendonly yes → Redis persists data to disk (AOF mode)
+    # Without this, all cache and rate-limit state is lost on container restart
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"   # Exposed to host for local Redis clients (e.g. RedisInsight)
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+# Docker manages these — they survive container recreation but not `docker compose down -v`
+volumes:
+  postgres_data:
+  redis_data:

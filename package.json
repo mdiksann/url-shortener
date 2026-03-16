@@ -1,0 +1,27 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "Production-quality URL Shortener service",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "migrate": "node migrations/migrate.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.0",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "nanoid": "^3.3.7",
+    "node-cron": "^3.0.3",
+    "pg": "^8.12.0",
+    "rate-limit-redis": "^4.2.0",
+    "redis": "^4.6.15"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
