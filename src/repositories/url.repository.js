@@ -24,6 +24,7 @@ const urlRepository = {
          custom_alias  AS "customAlias",
          is_active     AS "isActive",
          expires_at    AS "expiresAt",
+         user_id       AS "userId",
          created_at    AS "createdAt",
          updated_at    AS "updatedAt"
        FROM urls
@@ -63,16 +64,17 @@ const urlRepository = {
   /**
    * Insert a new URL record and return the full created row.
    * @param {object} data
-   * @param {string} data.shortCode
-   * @param {string} data.originalUrl
+   * @param {string}      data.shortCode
+   * @param {string}      data.originalUrl
    * @param {string|null} data.customAlias
    * @param {Date|null}   data.expiresAt
+   * @param {number|null} data.userId
    * @returns {Promise<object>}
    */
-  async create({ shortCode, originalUrl, customAlias, expiresAt }) {
+  async create({ shortCode, originalUrl, customAlias, expiresAt, userId }) {
     const { rows } = await query(
-      `INSERT INTO urls (short_code, original_url, custom_alias, expires_at)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO urls (short_code, original_url, custom_alias, expires_at, user_id)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING
          id,
          short_code    AS "shortCode",
@@ -80,8 +82,9 @@ const urlRepository = {
          custom_alias  AS "customAlias",
          is_active     AS "isActive",
          expires_at    AS "expiresAt",
+         user_id       AS "userId",
          created_at    AS "createdAt"`,
-      [shortCode, originalUrl, customAlias || null, expiresAt || null],
+      [shortCode, originalUrl, customAlias || null, expiresAt || null, userId || null],
     );
     return rows[0];
   },
