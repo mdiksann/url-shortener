@@ -6,6 +6,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 const config = require('./config/index');
 const redisClient = require('./config/redis');
@@ -34,6 +35,10 @@ async function createApp() {
   // ── Body parsing ──────────────────────────────────────────────────────────
   app.use(express.json({ limit: '10kb' })); // Reject oversized bodies
   app.use(express.urlencoded({ extended: false }));
+
+  // ── Cookie parsing ─────────────────────────────────────────────────────────
+  // Required for reading the HttpOnly refreshToken cookie in auth routes.
+  app.use(cookieParser());
 
   // ── Request logging ───────────────────────────────────────────────────────
   // 'dev' in development (coloured), 'combined' in production (Apache format)
