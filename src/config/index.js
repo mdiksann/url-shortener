@@ -29,11 +29,20 @@ const config = {
 
   // Cache TTL in seconds
   CACHE_TTL: parseInt(process.env.CACHE_TTL, 10) || 86_400,
+
+  // JWT — use different secrets so a leaked access secret cannot forge refresh tokens
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-in-production',
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-in-production',
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
+  JWT_REFRESH_EXPIRES_IN_DAYS: parseInt(process.env.JWT_REFRESH_EXPIRES_IN_DAYS, 10) || 7,
+
+  // bcrypt work factor — 12 rounds ≈ 300ms on a modern CPU (good cost/security balance)
+  BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
 };
 
 // Fail fast: throw early if required production variables are absent
 if (config.NODE_ENV === 'production') {
-  const required = ['DATABASE_URL', 'REDIS_URL', 'BASE_URL'];
+  const required = ['DATABASE_URL', 'REDIS_URL', 'BASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
   for (const key of required) {
     if (!config[key]) {
       throw new Error(`Missing required environment variable: ${key}`);
