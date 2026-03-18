@@ -27,7 +27,7 @@ const urlController = {
         return next(AppError.badRequest('originalUrl is required', 'MISSING_FIELD'));
       }
 
-      const result = await urlService.createShortUrl({ originalUrl, customAlias, expiresAt });
+      const result = await urlService.createShortUrl({ originalUrl, customAlias, expiresAt, userId: req.user.id });
 
       return res.status(201).json({
         success: true,
@@ -99,7 +99,7 @@ const urlController = {
     try {
       const { code } = req.params;
 
-      await urlService.deactivateUrl(code);
+      await urlService.deactivateUrl(code, req.user.id);
 
       return res.status(200).json({
         success: true,
