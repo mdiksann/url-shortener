@@ -23,9 +23,10 @@ const urlService = {
    * @param {string}      input.originalUrl
    * @param {string|null} [input.customAlias]
    * @param {string|null} [input.expiresAt]   - ISO 8601 string
+   * @param {number}      input.userId        - ID of the authenticated owner
    * @returns {Promise<object>} The created URL record with a shortUrl field
    */
-  async createShortUrl({ originalUrl, customAlias, expiresAt }) {
+  async createShortUrl({ originalUrl, customAlias, expiresAt, userId }) {
     // 1. Validate inputs — throws AppError on failure
     const validatedUrl = validateOriginalUrl(originalUrl);
 
@@ -60,6 +61,7 @@ const urlService = {
       originalUrl: validatedUrl,
       customAlias: customAlias || null,
       expiresAt: expiryDate,
+      userId,
     });
 
     // 4. Warm the cache immediately so the first redirect is a cache hit
@@ -130,14 +132,27 @@ const urlService = {
    * Preserves the row and all click history for analytics.
    *
    * @param {string} shortCode
+   * @param {number} userId - Must match the URL's owner
    * @returns {Promise<void>}
    */
-  async deactivateUrl(shortCode) {
-    const updated = await urlRepository.deactivate(shortCode);
+  async deactivateUrl(shortCode, userId) {
+    // Fetch first so we can give an accurate 404 vs 403
+    const record = await urlRepository.findByShortCode(shortCode);
 
-    if (!updated) {
+    if (!record) {
       throw AppError.notFound(`No URL found for code "${shortCode}"`, 'URL_NOT_FOUND');
     }
+
+    // Ownership check — record.userId is a number from the DB, req.user.id
+    // comes from the JWT payload as a string, so cast both to compare safely
+    if (String(record.userId) !== String(userId)) {
+      throw AppError.forbidden(
+        'You do not have permission to delete this URL',
+        'URL_ACCESS_DENIED',
+      );
+    }
+
+    await urlRepository.deactivate(shortCode);
 
     // Purge from cache immediately — don't wait for TTL expiry
     await cacheService.invalidate(shortCode);
