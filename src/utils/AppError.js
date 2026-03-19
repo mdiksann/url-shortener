@@ -38,6 +38,12 @@ AppError.conflict = (message, code = 'CONFLICT') =>
 AppError.gone = (message, code = 'GONE') =>
   new AppError(message, 410, code);
 
+AppError.unauthorized = (message = 'Authentication required', code = 'UNAUTHORIZED') =>
+  new AppError(message, 401, code);
+
+AppError.forbidden = (message = 'You do not have permission to perform this action', code = 'FORBIDDEN') =>
+  new AppError(message, 403, code);
+
 AppError.tooManyRequests = (message = 'Too many requests', code = 'RATE_LIMITED') =>
   new AppError(message, 429, code);
 
