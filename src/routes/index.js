@@ -2,10 +2,14 @@
 
 const { Router } = require('express');
 const urlRoutes = require('./url.routes');
+const authRoutes = require('./auth.routes');
 const urlController = require('../controllers/url.controller');
 const { redirectLimiter } = require('../middlewares/rateLimiter');
 
 const router = Router();
+
+// ── Auth routes ─────────────────────────────────────────────────────────────
+router.use('/api/v1/auth', authRoutes);
 
 // ── API routes ─────────────────────────────────────────────────────────────
 router.use('/api/v1/urls', urlRoutes);
