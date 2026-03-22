@@ -94,6 +94,7 @@ const options = {
     './src/routes/auth.routes.js',
     './src/routes/url.routes.js',
     './src/routes/analytics.routes.js',
+    './src/routes/apiKey.routes.js',
   ],
 };
 
