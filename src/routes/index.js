@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../config/swagger');
 const urlRoutes = require('./url.routes');
 const authRoutes = require('./auth.routes');
+const apiKeyRoutes = require('./apiKey.routes');
 const urlController = require('../controllers/url.controller');
 const { redirectLimiter } = require('../middlewares/rateLimiter');
 
@@ -25,6 +26,9 @@ router.use(
 
 // ── Auth routes ─────────────────────────────────────────────────────────────
 router.use('/api/v1/auth', authRoutes);
+
+// ── Account management routes ──────────────────────────────────────────────
+router.use('/api/v1/account/api-keys', apiKeyRoutes);
 
 // ── API routes ─────────────────────────────────────────────────────────────
 router.use('/api/v1/urls', urlRoutes);
